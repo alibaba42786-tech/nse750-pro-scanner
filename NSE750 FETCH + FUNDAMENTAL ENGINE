@@ -1,0 +1,89 @@
+import pandas as pd
+import yfinance as yf
+import time
+
+# =========================================================
+# FETCH NSE750 SYMBOLS
+# =========================================================
+
+def get_nse750_symbols():
+
+    urls = [
+        "https://archives.nseindia.com/content/indices/ind_nifty500list.csv",
+        "https://archives.nseindia.com/content/indices/ind_niftymidcap150list.csv",
+        "https://archives.nseindia.com/content/indices/ind_niftysmallcap250list.csv"
+    ]
+
+    all_symbols = []
+
+    for url in urls:
+
+        try:
+            df = pd.read_csv(url)
+
+            symbols = df['Symbol'].tolist()
+
+            all_symbols.extend(symbols)
+
+            print(f"Loaded: {len(symbols)}")
+
+        except Exception as e:
+            print(f"FAILED: {url}")
+            print(e)
+
+    # REMOVE DUPLICATES
+    all_symbols = list(set(all_symbols))
+
+    # YAHOO FORMAT
+    stocks = [x + ".NS" for x in all_symbols]
+
+    print(f"TOTAL NSE STOCKS: {len(stocks)}")
+
+    return stocks
+
+# =========================================================
+# FUNDAMENTAL FETCH
+# =========================================================
+
+def fetch_fundamentals(stocks):
+
+    data = []
+
+    for i, stock in enumerate(stocks):
+
+        try:
+
+            ticker = yf.Ticker(stock)
+
+            info = ticker.info
+
+            row = {
+                "SYMBOL": stock,
+                "NAME": info.get("shortName"),
+                "SECTOR": info.get("sector"),
+                "INDUSTRY": info.get("industry"),
+                "MARKET_CAP": info.get("marketCap"),
+                "PE": info.get("trailingPE"),
+                "PB": info.get("priceToBook"),
+                "ROE": info.get("returnOnEquity"),
+                "DEBT_TO_EQUITY": info.get("debtToEquity"),
+                "REVENUE_GROWTH": info.get("revenueGrowth"),
+                "PROFIT_MARGIN": info.get("profitMargins"),
+                "CURRENT_PRICE": info.get("currentPrice")
+            }
+
+            data.append(row)
+
+            print(f"{i+1} DONE: {stock}")
+
+            time.sleep(0.5)
+
+        except Exception as e:
+
+            print(f"FAILED: {stock}")
+
+            continue
+
+    df = pd.DataFrame(data)
+
+    return df
