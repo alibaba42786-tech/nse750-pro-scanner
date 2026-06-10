@@ -1,3 +1,7 @@
+from fundamentals import (
+    get_nse750_symbols,
+    fetch_fundamentals
+)
 import os
 import json
 import pandas as pd
@@ -81,32 +85,10 @@ for tab in required_tabs:
         )
 
 # =========================================================
-# NSE SYMBOL FETCH
+# NSE750 SYMBOLS
 # =========================================================
 
-print("Fetching NSE universe...")
-
-n500 = pd.read_csv(
-    "https://archives.nseindia.com/content/indices/ind_nifty500list.csv"
-)
-
-mid150 = pd.read_csv(
-    "https://archives.nseindia.com/content/indices/ind_niftymidcap150list.csv"
-)
-
-small250 = pd.read_csv(
-    "https://archives.nseindia.com/content/indices/ind_niftysmallcap250list.csv"
-)
-
-symbols = pd.concat([
-    n500['Symbol'],
-    mid150['Symbol'],
-    small250['Symbol']
-])
-
-symbols = symbols.drop_duplicates()
-
-stocks = [x + ".NS" for x in symbols]
+stocks = get_nse750_symbols()
 
 df = pd.DataFrame({
     "SYMBOL": stocks
@@ -126,6 +108,33 @@ set_with_dataframe(
     master,
     df
 )
+
+# =========================================================
+# FUNDAMENTAL ENGINE
+# =========================================================
+
+print("FETCHING FUNDAMENTALS...")
+
+fundamental_df = fetch_fundamentals(
+    stocks[:100]
+)
+
+# =========================================================
+# SAVE TOP300 TAB
+# =========================================================
+
+top300 = spreadsheet.worksheet(
+    "FUNDAMENTAL_TOP300"
+)
+
+top300.clear()
+
+set_with_dataframe(
+    top300,
+    fundamental_df
+)
+
+print("FUNDAMENTALS UPDATED")
 
 # =========================================================
 # HEADER FORMAT
