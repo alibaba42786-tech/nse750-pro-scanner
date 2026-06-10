@@ -1,1 +1,10 @@
-
+yfinance
+pandas
+numpy
+gspread
+gspread_dataframe
+google-auth
+requests-cache
+pyarrow
+openpyxl
+requests
